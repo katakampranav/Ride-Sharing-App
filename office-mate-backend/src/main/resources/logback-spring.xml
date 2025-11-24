@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Define properties for log patterns and file locations -->
+    <springProfile name="!prod">
+        <property name="LOG_LEVEL" value="DEBUG"/>
+        <property name="LOG_FILE" value="logs/officemate"/>
+    </springProfile>
+    <springProfile name="prod">
+        <property name="LOG_LEVEL" value="INFO"/>
+        <property name="LOG_FILE" value="/var/log/officemate/officemate"/>
+    </springProfile>
+
+    <!-- Console appender with colored output for development -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <mdc/>
+                <arguments/>
+                <message/>
+                <stackTrace/>
+            </providers>
+            <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+        </encoder>
+    </appender>
+
+    <!-- File appender for general application logs -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <mdc/>
+                <arguments/>
+                <message/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Security events appender -->
+    <appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}-security.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <mdc/>
+                <arguments/>
+                <message/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}-security.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Audit events appender -->
+    <appender name="AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}-audit.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <mdc/>
+                <arguments/>
+                <message/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}-audit.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>365</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Cancellation tracking appender -->
+    <appender name="CANCELLATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}-cancellation.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <mdc/>
+                <arguments/>
+                <message/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}-cancellation.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Async appenders for better performance -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>1024</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="ASYNC_SECURITY" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SECURITY"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="ASYNC_AUDIT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="AUDIT"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="ASYNC_CANCELLATION" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CANCELLATION"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <!-- Logger for security events -->
+    <logger name="com.officemate.security" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_SECURITY"/>
+        <springProfile name="!prod">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+    </logger>
+
+    <!-- Logger for audit events -->
+    <logger name="com.officemate.audit" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_AUDIT"/>
+        <springProfile name="!prod">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+    </logger>
+
+    <!-- Logger for cancellation tracking -->
+    <logger name="com.officemate.cancellation" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_CANCELLATION"/>
+        <springProfile name="!prod">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+    </logger>
+
+    <!-- Spring Security logging -->
+    <logger name="org.springframework.security" level="DEBUG"/>
+    
+    <!-- Database logging -->
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+    <!-- Root logger -->
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="ASYNC_FILE"/>
+        <springProfile name="!prod">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+    </root>
+</configuration>

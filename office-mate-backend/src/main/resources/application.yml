@@ -1,0 +1,281 @@
+spring:
+  application:
+    name: ${APPLICATION_NAME:officemate}
+  
+  # HTTP request size limits and timeout settings
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:10MB}
+      max-request-size: ${MAX_REQUEST_SIZE:50MB}
+      file-size-threshold: ${FILE_SIZE_THRESHOLD:1MB}
+      enabled: true
+  
+  # Jackson configuration for JSON parsing security
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+      fail-on-null-for-primitives: true
+      fail-on-numbers-for-enums: true
+    parser:
+      allow-comments: false
+      allow-yaml-comments: false
+      allow-unquoted-field-names: false
+      allow-single-quotes: false
+  
+  # PostgreSQL - Primary relational database
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/officemate}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${POSTGRES_POOL_SIZE:10}
+      minimum-idle: ${POSTGRES_MIN_IDLE:5}
+      connection-timeout: ${POSTGRES_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${POSTGRES_IDLE_TIMEOUT:600000}
+      max-lifetime: ${POSTGRES_MAX_LIFETIME:1800000}
+      pool-name: OfficeMateHikariPool
+  
+  # MongoDB - For migration support
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/officemate}
+      database: ${MONGODB_DATABASE:officemate}
+      auto-index-creation: true
+    
+    # Redis - Session storage and OTP caching
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:2000}
+      jedis:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
+          max-wait: ${REDIS_POOL_MAX_WAIT:-1}
+  
+  # JPA Configuration for PostgreSQL
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${DDL_AUTO:validate}
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        '[format_sql]': true
+        '[jdbc.batch_size]': 20
+        '[order_inserts]': true
+        '[order_updates]': true
+        '[generate_statistics]': ${HIBERNATE_STATS:false}
+  
+  # H2 Console (for development/testing only)
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:false}
+      path: /h2-console
+
+# AWS Configuration
+aws:
+  region: ${AWS_REGION:us-east-1}
+  access-key-id: ${AWS_ACCESS_KEY_ID:}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+  
+  # DynamoDB Configuration
+  dynamodb:
+    endpoint: ${DYNAMODB_ENDPOINT:}
+    table-prefix: ${DYNAMODB_TABLE_PREFIX:officemate}
+    tables:
+      route-preferences: ${DYNAMODB_TABLE_ROUTE_PREFERENCES:route_preferences}
+      user-matching: ${DYNAMODB_TABLE_USER_MATCHING:user_matching}
+      real-time-location: ${DYNAMODB_TABLE_REAL_TIME_LOCATION:real_time_location}
+    read-capacity-units: ${DYNAMODB_READ_CAPACITY:5}
+    write-capacity-units: ${DYNAMODB_WRITE_CAPACITY:5}
+    
+  # SNS Configuration (SMS delivery)
+  sns:
+    sender-id: ${SNS_SENDER_ID:OfficeMate}
+    sms-type: ${SNS_SMS_TYPE:Transactional}
+    max-price: ${SNS_MAX_PRICE:0.50}
+    
+  # SES Configuration (Email delivery)
+  ses:
+    from-email: ${SES_FROM_EMAIL:noreply@officemate.com}
+    from-name: ${SES_FROM_NAME:OfficeMate}
+    configuration-set: ${SES_CONFIGURATION_SET:}
+    
+  # KMS Configuration (Encryption)
+  kms:
+    key-id: ${KMS_KEY_ID:}
+    key-alias: ${KMS_KEY_ALIAS:alias/officemate}
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  error:
+    include-message: always
+    include-binding-errors: always
+  # Request size and timeout limits
+  max-http-request-header-size: ${MAX_HTTP_HEADER_SIZE:8KB}
+  tomcat:
+    max-http-form-post-size: ${MAX_HTTP_FORM_POST_SIZE:2MB}
+    max-swallow-size: ${MAX_SWALLOW_SIZE:2MB}
+    connection-timeout: ${TOMCAT_CONNECTION_TIMEOUT:20000}
+    threads:
+      max: ${TOMCAT_MAX_THREADS:200}
+      min-spare: ${TOMCAT_MIN_SPARE_THREADS:10}
+
+# Spring Boot Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    '[com.officemate]': ${LOG_LEVEL:INFO}
+    '[com.officemate.security]': INFO
+    '[com.officemate.audit]': INFO
+    '[com.officemate.cancellation]': INFO
+    '[org.springframework.security]': ${SECURITY_LOG_LEVEL:WARN}
+    '[org.hibernate.SQL]': ${SQL_LOG_LEVEL:WARN}
+    '[org.hibernate.type.descriptor.sql.BasicBinder]': ${SQL_BIND_LOG_LEVEL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{userId:-SYSTEM}] [%X{sessionId:-NONE}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{userId:-SYSTEM}] [%X{sessionId:-NONE}] %logger{36} - %msg%n"
+
+# Application-specific Configuration
+app:
+  otp:
+    length: ${OTP_LENGTH:6}
+    expiration-minutes: ${OTP_EXPIRATION_MINUTES:5}
+    max-attempts: ${OTP_MAX_ATTEMPTS:3}
+    
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    otp-requests-per-hour: ${RATE_LIMIT_OTP:5}
+    login-attempts-per-hour: ${RATE_LIMIT_LOGIN:10}
+    max-requests-per-minute: ${RATE_LIMIT_API:60}
+  
+  security:
+    jwt:
+      secret: ${JWT_SECRET:changeme-this-is-a-development-secret-key-only}
+      expiration: ${JWT_EXPIRATION:3600000}
+      refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400000}
+    
+    lockout:
+      max-failed-attempts: ${SECURITY_MAX_FAILED_ATTEMPTS:5}
+      duration-minutes: ${SECURITY_LOCKOUT_DURATION:30}
+    
+    suspicious:
+      threshold: ${SECURITY_SUSPICIOUS_THRESHOLD:10}
+    
+    pattern-monitoring:
+      enabled: ${PATTERN_MONITORING_ENABLED:true}
+      unusual-hour-threshold: ${PATTERN_UNUSUAL_HOUR_THRESHOLD:2}
+      device-change-threshold: ${PATTERN_DEVICE_CHANGE_THRESHOLD:3}
+      location-change-threshold: ${PATTERN_LOCATION_CHANGE_THRESHOLD:5}
+  
+  captcha:
+    enabled: ${CAPTCHA_ENABLED:true}
+    site-key: ${CAPTCHA_SITE_KEY:}
+    secret-key: ${CAPTCHA_SECRET_KEY:}
+    verify-url: ${CAPTCHA_VERIFY_URL:https://www.google.com/recaptcha/api/siteverify}
+  
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization,Content-Type}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    max-age: ${CORS_MAX_AGE:3600}
+  
+  # Input validation and sanitization settings
+  validation:
+    enabled: ${VALIDATION_ENABLED:true}
+    phone-number:
+      default-region: ${PHONE_DEFAULT_REGION:US}
+      international-only: ${PHONE_INTERNATIONAL_ONLY:true}
+    corporate-email:
+      blocked-domains: ${BLOCKED_EMAIL_DOMAINS:gmail.com,yahoo.com,hotmail.com,outlook.com,aol.com,icloud.com}
+      min-domain-length: ${MIN_DOMAIN_LENGTH:4}
+    text-sanitization:
+      max-length: ${TEXT_MAX_LENGTH:1000}
+      allow-html: ${ALLOW_HTML:false}
+      allow-special-chars: ${ALLOW_SPECIAL_CHARS:true}
+    license-plate:
+      default-region: ${LICENSE_PLATE_REGION:US}
+      min-length: ${LICENSE_PLATE_MIN_LENGTH:2}
+      max-length: ${LICENSE_PLATE_MAX_LENGTH:10}
+  
+  # Vehicle configuration
+  vehicle:
+    types:
+      allowed: ${VEHICLE_TYPES_ALLOWED:CAR,MOTORCYCLE,SCOOTER,BICYCLE}
+    fuel-types:
+      allowed: ${FUEL_TYPES_ALLOWED:PETROL,DIESEL,ELECTRIC,HYBRID,CNG}
+    capacity:
+      car:
+        min: ${CAR_CAPACITY_MIN:1}
+        max: ${CAR_CAPACITY_MAX:7}
+      motorcycle:
+        min: ${MOTORCYCLE_CAPACITY_MIN:1}
+        max: ${MOTORCYCLE_CAPACITY_MAX:2}
+      scooter:
+        min: ${SCOOTER_CAPACITY_MIN:1}
+        max: ${SCOOTER_CAPACITY_MAX:2}
+      bicycle:
+        min: ${BICYCLE_CAPACITY_MIN:1}
+        max: ${BICYCLE_CAPACITY_MAX:1}
+  
+  # Profile configuration
+  profile:
+    driver:
+      max-detour-distance: ${DRIVER_MAX_DETOUR_DISTANCE:500}
+      license-verification-required: ${DRIVER_LICENSE_VERIFICATION_REQUIRED:true}
+    rider:
+      gender-preferences:
+        allowed: ${RIDER_GENDER_PREFERENCES_ALLOWED:FEMALE_ONLY,MALE_SINGLE_FEMALE,MALE_ALL_FEMALE,NO_PREFERENCE}
+      max-favorite-drivers: ${RIDER_MAX_FAVORITE_DRIVERS:10}
+  
+  # Email verification configuration
+  email:
+    verification:
+      otp-expiration-minutes: ${EMAIL_OTP_EXPIRATION_MINUTES:10}
+      max-attempts: ${EMAIL_MAX_ATTEMPTS:3}
+      resend-cooldown-seconds: ${EMAIL_RESEND_COOLDOWN:60}
+  
+  # Session configuration
+  session:
+    max-concurrent-sessions: ${MAX_CONCURRENT_SESSIONS:5}
+    token-blacklist-cleanup-hours: ${TOKEN_BLACKLIST_CLEANUP_HOURS:24}
+  
+  # Cancellation tracking configuration
+  cancellation:
+    tracking:
+      enabled: ${CANCELLATION_TRACKING_ENABLED:true}
+      max-per-month: ${CANCELLATION_MAX_PER_MONTH:5}
+      suspension-duration-months: ${CANCELLATION_SUSPENSION_MONTHS:3}
+  
+  # Service-to-service authentication
+  service-auth:
+    enabled: ${SERVICE_AUTH_ENABLED:true}
+    api-key: ${SERVICE_API_KEY:}

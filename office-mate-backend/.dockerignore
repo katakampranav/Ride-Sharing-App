@@ -1,0 +1,66 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# IDE files
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings
+
+# Build outputs
+build/
+target/
+bin/
+out/
+.gradle/
+
+# Test outputs
+*.log
+*.tmp
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+docs/
+README.md
+LICENSE
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Docker files (don't copy into image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.bak
+
+# Node modules (if any frontend)
+node_modules/
+npm-debug.log
+
+# Scripts (not needed in container)
+scripts/deploy*.sh
+scripts/verify-setup.sh

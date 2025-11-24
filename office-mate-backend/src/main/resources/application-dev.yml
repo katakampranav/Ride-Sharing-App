@@ -1,0 +1,119 @@
+# Development Environment Configuration
+spring:
+  # PostgreSQL - Primary relational database
+  datasource:
+    url: jdbc:postgresql://localhost:5432/officemate_dev
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+  
+  # MongoDB - For migration support
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/officemate_dev
+      database: officemate_dev
+    
+    # Redis - Session storage and OTP caching
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        '[format_sql]': true
+        '[generate_statistics]': true
+  
+  # H2 Console for development
+  h2:
+    console:
+      enabled: true
+
+# AWS Local Configuration (LocalStack for local development)
+aws:
+  region: us-east-1
+  access-key-id: test
+  secret-access-key: test
+  
+  # DynamoDB Local Configuration
+  dynamodb:
+    endpoint: http://localhost:4566
+    table-prefix: dev
+    read-capacity-units: 1
+    write-capacity-units: 1
+  
+  # SNS Local Configuration
+  sns:
+    sender-id: OfficeMate-Dev
+    sms-type: Transactional
+  
+  # SES Local Configuration
+  ses:
+    from-email: dev@officemate.local
+    from-name: OfficeMate Dev
+  
+  # KMS Local Configuration
+  kms:
+    key-id: dev-key-id
+    key-alias: alias/officemate-dev
+
+# Development Application Configuration
+app:
+  security:
+    jwt:
+      secret: dev-secret-key-for-local-development-only-change-in-production
+      expiration: 3600000
+      refresh-expiration: 86400000
+  
+  otp:
+    length: 6
+    expiration-minutes: 5
+    max-attempts: 5
+  
+  rate-limit:
+    enabled: false
+  
+  captcha:
+    enabled: false
+  
+  validation:
+    phone-number:
+      default-region: US
+    corporate-email:
+      blocked-domains: gmail.com,yahoo.com,hotmail.com
+  
+  vehicle:
+    types:
+      allowed: CAR,MOTORCYCLE,SCOOTER,BICYCLE
+    fuel-types:
+      allowed: PETROL,DIESEL,ELECTRIC,HYBRID,CNG
+  
+  profile:
+    driver:
+      max-detour-distance: 500
+      license-verification-required: false
+    rider:
+      gender-preferences:
+        allowed: FEMALE_ONLY,MALE_SINGLE_FEMALE,MALE_ALL_FEMALE,NO_PREFERENCE
+  
+  email:
+    verification:
+      otp-expiration-minutes: 10
+      max-attempts: 5
+
+# Development Logging
+logging:
+  level:
+    com.officemate: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    software.amazon.awssdk: DEBUG

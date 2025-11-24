@@ -1,0 +1,195 @@
+# Staging Environment Configuration
+spring:
+  # PostgreSQL - Primary relational database
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: OfficeMateHikariPool-Staging
+  
+  # MongoDB - For migration support
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE:officemate_staging}
+    
+    # Redis - Session storage and OTP caching
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
+      ssl:
+        enabled: true
+      timeout: 2000
+      jedis:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        '[format_sql]': true
+        '[generate_statistics]': false
+  
+  # H2 Console disabled in staging
+  h2:
+    console:
+      enabled: false
+
+# AWS Staging Configuration
+aws:
+  region: ${AWS_REGION:us-east-1}
+  access-key-id: ${AWS_ACCESS_KEY_ID}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+  
+  # DynamoDB Staging Configuration
+  dynamodb:
+    endpoint: ${DYNAMODB_ENDPOINT:}
+    table-prefix: staging
+    tables:
+      route-preferences: ${DYNAMODB_TABLE_ROUTE_PREFERENCES:route_preferences}
+      user-matching: ${DYNAMODB_TABLE_USER_MATCHING:user_matching}
+      real-time-location: ${DYNAMODB_TABLE_REAL_TIME_LOCATION:real_time_location}
+    read-capacity-units: 5
+    write-capacity-units: 5
+  
+  # SNS Staging Configuration
+  sns:
+    sender-id: ${SNS_SENDER_ID:OfficeMate-Staging}
+    sms-type: Transactional
+    max-price: 0.50
+  
+  # SES Staging Configuration
+  ses:
+    from-email: ${SES_FROM_EMAIL:staging@officemate.com}
+    from-name: ${SES_FROM_NAME:OfficeMate Staging}
+    configuration-set: ${SES_CONFIGURATION_SET:officemate-staging}
+  
+  # KMS Staging Configuration
+  kms:
+    key-id: ${KMS_KEY_ID}
+    key-alias: ${KMS_KEY_ALIAS:alias/officemate-staging}
+
+# Staging Application Configuration
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: 3600000
+      refresh-expiration: 86400000
+    
+    lockout:
+      max-failed-attempts: 5
+      duration-minutes: 30
+    
+    suspicious:
+      threshold: 10
+    
+    pattern-monitoring:
+      enabled: true
+  
+  otp:
+    length: 6
+    expiration-minutes: 5
+    max-attempts: 3
+  
+  rate-limit:
+    enabled: true
+    otp-requests-per-hour: 10
+    login-attempts-per-hour: 20
+    max-requests-per-minute: 100
+  
+  captcha:
+    enabled: true
+    site-key: ${CAPTCHA_SITE_KEY}
+    secret-key: ${CAPTCHA_SECRET_KEY}
+  
+  validation:
+    phone-number:
+      default-region: ${PHONE_DEFAULT_REGION:US}
+      international-only: true
+    corporate-email:
+      blocked-domains: ${BLOCKED_EMAIL_DOMAINS:gmail.com,yahoo.com,hotmail.com,outlook.com,aol.com,icloud.com}
+  
+  vehicle:
+    types:
+      allowed: CAR,MOTORCYCLE,SCOOTER,BICYCLE
+    fuel-types:
+      allowed: PETROL,DIESEL,ELECTRIC,HYBRID,CNG
+    capacity:
+      car:
+        min: 1
+        max: 7
+      motorcycle:
+        min: 1
+        max: 2
+      scooter:
+        min: 1
+        max: 2
+      bicycle:
+        min: 1
+        max: 1
+  
+  profile:
+    driver:
+      max-detour-distance: 500
+      license-verification-required: true
+    rider:
+      gender-preferences:
+        allowed: FEMALE_ONLY,MALE_SINGLE_FEMALE,MALE_ALL_FEMALE,NO_PREFERENCE
+      max-favorite-drivers: 10
+  
+  email:
+    verification:
+      otp-expiration-minutes: 10
+      max-attempts: 3
+      resend-cooldown-seconds: 60
+  
+  session:
+    max-concurrent-sessions: 5
+    token-blacklist-cleanup-hours: 24
+  
+  cancellation:
+    tracking:
+      enabled: true
+      max-per-month: 5
+      suspension-duration-months: 3
+
+# Staging Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+  tomcat:
+    threads:
+      max: 100
+      min-spare: 10
+
+# Staging Logging (more verbose than production)
+logging:
+  level:
+    com.officemate: DEBUG
+    com.officemate.security: DEBUG
+    com.officemate.audit: INFO
+    com.officemate.cancellation: INFO
+    org.springframework: INFO
+    org.springframework.security: INFO
+    org.hibernate: INFO
+    software.amazon.awssdk: INFO

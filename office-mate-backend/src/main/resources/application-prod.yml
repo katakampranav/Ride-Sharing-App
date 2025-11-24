@@ -1,0 +1,199 @@
+# Production Environment Configuration
+spring:
+  # PostgreSQL - Primary relational database
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: OfficeMateHikariPool-Prod
+  
+  # MongoDB - For migration support
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE:officemate}
+    
+    # Redis - Session storage and OTP caching
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
+      ssl:
+        enabled: true
+      timeout: 2000
+      jedis:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        '[format_sql]': false
+        '[generate_statistics]': false
+        '[jdbc.batch_size]': 20
+        '[order_inserts]': true
+        '[order_updates]': true
+  
+  # H2 Console disabled in production
+  h2:
+    console:
+      enabled: false
+
+# AWS Production Configuration
+aws:
+  region: ${AWS_REGION}
+  access-key-id: ${AWS_ACCESS_KEY_ID}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+  
+  # DynamoDB Production Configuration
+  dynamodb:
+    endpoint: ${DYNAMODB_ENDPOINT:}
+    table-prefix: prod
+    tables:
+      route-preferences: ${DYNAMODB_TABLE_ROUTE_PREFERENCES:route_preferences}
+      user-matching: ${DYNAMODB_TABLE_USER_MATCHING:user_matching}
+      real-time-location: ${DYNAMODB_TABLE_REAL_TIME_LOCATION:real_time_location}
+    read-capacity-units: 10
+    write-capacity-units: 10
+  
+  # SNS Production Configuration
+  sns:
+    sender-id: ${SNS_SENDER_ID}
+    sms-type: Transactional
+    max-price: 0.50
+  
+  # SES Production Configuration
+  ses:
+    from-email: ${SES_FROM_EMAIL}
+    from-name: ${SES_FROM_NAME}
+    configuration-set: ${SES_CONFIGURATION_SET:officemate-prod}
+  
+  # KMS Production Configuration
+  kms:
+    key-id: ${KMS_KEY_ID}
+    key-alias: ${KMS_KEY_ALIAS:alias/officemate-prod}
+
+# Production Application Configuration
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: 3600000
+      refresh-expiration: 86400000
+    
+    lockout:
+      max-failed-attempts: 5
+      duration-minutes: 30
+    
+    suspicious:
+      threshold: 10
+    
+    pattern-monitoring:
+      enabled: true
+  
+  otp:
+    length: 6
+    expiration-minutes: 5
+    max-attempts: 3
+  
+  rate-limit:
+    enabled: true
+    otp-requests-per-hour: 5
+    login-attempts-per-hour: 10
+    max-requests-per-minute: 60
+  
+  captcha:
+    enabled: true
+    site-key: ${CAPTCHA_SITE_KEY}
+    secret-key: ${CAPTCHA_SECRET_KEY}
+  
+  validation:
+    phone-number:
+      default-region: ${PHONE_DEFAULT_REGION:US}
+      international-only: true
+    corporate-email:
+      blocked-domains: ${BLOCKED_EMAIL_DOMAINS:gmail.com,yahoo.com,hotmail.com,outlook.com,aol.com,icloud.com}
+  
+  vehicle:
+    types:
+      allowed: CAR,MOTORCYCLE,SCOOTER,BICYCLE
+    fuel-types:
+      allowed: PETROL,DIESEL,ELECTRIC,HYBRID,CNG
+    capacity:
+      car:
+        min: 1
+        max: 7
+      motorcycle:
+        min: 1
+        max: 2
+      scooter:
+        min: 1
+        max: 2
+      bicycle:
+        min: 1
+        max: 1
+  
+  profile:
+    driver:
+      max-detour-distance: 500
+      license-verification-required: true
+    rider:
+      gender-preferences:
+        allowed: FEMALE_ONLY,MALE_SINGLE_FEMALE,MALE_ALL_FEMALE,NO_PREFERENCE
+      max-favorite-drivers: 10
+  
+  email:
+    verification:
+      otp-expiration-minutes: 10
+      max-attempts: 3
+      resend-cooldown-seconds: 60
+  
+  session:
+    max-concurrent-sessions: 5
+    token-blacklist-cleanup-hours: 24
+  
+  cancellation:
+    tracking:
+      enabled: true
+      max-per-month: 5
+      suspension-duration-months: 3
+
+# Production Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+
+# Production Logging
+logging:
+  level:
+    com.officemate: INFO
+    com.officemate.security: INFO
+    com.officemate.audit: INFO
+    com.officemate.cancellation: INFO
+    org.springframework: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    software.amazon.awssdk: WARN

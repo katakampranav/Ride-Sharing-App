@@ -1,0 +1,129 @@
+# Test Environment Configuration
+spring:
+  # H2 In-Memory Database for testing
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+  
+  # MongoDB Test Configuration
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/officemate_test
+      database: officemate_test
+    
+    # Redis Test Configuration
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 1
+  
+  # JPA Test Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        '[format_sql]': false
+        '[generate_statistics]': false
+  
+  # H2 Console disabled for tests
+  h2:
+    console:
+      enabled: false
+
+# AWS Test Configuration (LocalStack or mocked)
+aws:
+  region: us-east-1
+  access-key-id: test
+  secret-access-key: test
+  
+  # DynamoDB Test Configuration
+  dynamodb:
+    endpoint: http://localhost:4566
+    table-prefix: test
+    read-capacity-units: 1
+    write-capacity-units: 1
+  
+  # SNS Test Configuration
+  sns:
+    sender-id: OfficeMate-Test
+    sms-type: Transactional
+  
+  # SES Test Configuration
+  ses:
+    from-email: test@officemate.test
+    from-name: OfficeMate Test
+  
+  # KMS Test Configuration
+  kms:
+    key-id: test-key-id
+    key-alias: alias/officemate-test
+
+# Test Application Configuration
+app:
+  security:
+    jwt:
+      secret: test-secret-key-for-testing-only-not-for-production-use
+      expiration: 60000
+      refresh-expiration: 120000
+  
+  otp:
+    length: 6
+    expiration-minutes: 1
+    max-attempts: 5
+  
+  rate-limit:
+    enabled: false
+  
+  captcha:
+    enabled: false
+  
+  validation:
+    phone-number:
+      default-region: US
+    corporate-email:
+      blocked-domains: gmail.com,yahoo.com
+  
+  vehicle:
+    types:
+      allowed: CAR,MOTORCYCLE,SCOOTER,BICYCLE
+    fuel-types:
+      allowed: PETROL,DIESEL,ELECTRIC,HYBRID,CNG
+  
+  profile:
+    driver:
+      max-detour-distance: 500
+      license-verification-required: false
+    rider:
+      gender-preferences:
+        allowed: FEMALE_ONLY,MALE_SINGLE_FEMALE,MALE_ALL_FEMALE,NO_PREFERENCE
+  
+  email:
+    verification:
+      otp-expiration-minutes: 1
+      max-attempts: 5
+  
+  session:
+    max-concurrent-sessions: 3
+  
+  cancellation:
+    tracking:
+      enabled: true
+      max-per-month: 5
+      suspension-duration-months: 3
+
+# Test Logging
+logging:
+  level:
+    com.officemate: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    software.amazon.awssdk: WARN
